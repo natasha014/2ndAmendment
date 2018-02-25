@@ -3,11 +3,6 @@
 var builder = require('botbuilder');
 var restify = require('restify');
 var https = require ('https');
-var responseObject = 
-{
-
-
-};
 
 
 let uri = 'westus.api.cognitive.microsoft.com';
@@ -47,6 +42,10 @@ var bot = new builder.UniversalBot(connector, [
         	session.userData.score++;
 
         }
+        else
+        {
+        	session.userData.score-=3.5;
+        }
         builder.Prompts.text(session, "Do you have a gun licence");
 
     },
@@ -55,6 +54,10 @@ var bot = new builder.UniversalBot(connector, [
         {
         	session.userData.score++;
 
+        }
+        else
+        {
+        	session.userData.score-=1;
         }
         builder.Prompts.text(session, "Describe your average day in 3 to 4 lines");
 
@@ -86,16 +89,18 @@ var bot = new builder.UniversalBot(connector, [
 					response.on ('end', function () {
 					   	body_ = JSON.parse (body);
 					    let body__ = JSON.stringify (body_, null, '  ');
-					    console.log (body_.documents[1].score);for(var i=0; i<3; i++)
+					   
+					for(var i=0; i<3; i++)
 					{
 						session.userData.score+= body_.documents[i].score;
 					}
-					if(`${session.userData.score}`>2.5)
+					 console.log (`${session.userData.score}`);
+					if(`${session.userData.score}`>3.5)
 					session.send("You can buy a gun if you feel that you need it");
 					else
 					session.send("We advise you not to buy a gun");
 				 	session.endDialog();
-				 	
+
 					});
 					response.on ('error', function (e) {
 					    console.log ('Error: ' + e.message);
