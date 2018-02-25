@@ -12,6 +12,7 @@ var responseObject =
 
 let uri = 'westus.api.cognitive.microsoft.com';
 let path = '/text/analytics/v2.0/sentiment';
+var body_;
 
 // Setup Restify Server
 var server = restify.createServer();
@@ -60,20 +61,20 @@ var bot = new builder.UniversalBot(connector, [
     },
     function(session,results)
     {
-    	session.userData.questionresposearray[0]=`${results.response}`;
+    	session.userData.questionresposearray=[`${results.response}`];
     	builder.Prompts.text(session, "What do you feel when you see a group of people laughing. Write a response in 3 to 4 lines");
 
     },
     function(session,results)
     {
-    	session.userData.questionresposearray[1]=`${results.response}`;
+    	session.userData.questionresposearray.push(`${results.response}`);
     	builder.Prompts.text(session, "Please describe prominent patterns in your mood, behaviour, weight and sleep cycle. Describe the changes in these patterns in the last six months(if any)");
 
     },
 
     function (session, results) {
 
-    				session.userData.questionresposearray[2]=`${results.response}`;
+    				session.userData.questionresposearray.push(`${results.response}`);
 					let uri = 'westcentralus.api.cognitive.microsoft.com';
 					let path = '/text/analytics/v2.0/sentiment';
 
@@ -83,9 +84,18 @@ var bot = new builder.UniversalBot(connector, [
 					    body += d;
 					});
 					response.on ('end', function () {
-					    let body_ = JSON.parse (body);
+					   	body_ = JSON.parse (body);
 					    let body__ = JSON.stringify (body_, null, '  ');
-					    console.log (body_.documents[1].score);
+					    console.log (body_.documents[1].score);for(var i=0; i<3; i++)
+					{
+						session.userData.score+= body_.documents[i].score;
+					}
+					if(`${session.userData.score}`>2.5)
+					session.send("You can buy a gun if you feel that you need it");
+					else
+					session.send("We advise you not to buy a gun");
+				 	session.endDialog();
+				 	
 					});
 					response.on ('error', function (e) {
 					    console.log ('Error: ' + e.message);
@@ -112,20 +122,19 @@ var bot = new builder.UniversalBot(connector, [
 					let documents = { 'documents': [
 					{ 'id': '1', 'language': 'en', 'text': `${session.userData.questionresposearray[0]}` },
 					{ 'id': '2', 'language': 'en', 'text': `${session.userData.questionresposearray[1]}` },
-					{ 'id': '2', 'language': 'en', 'text': `${session.userData.questionresposearray[2]}` },
+					{ 'id': '3', 'language': 'en', 'text': `${session.userData.questionresposearray[2]}` },
 
 					]};
 
 					get_sentiments (documents);
+
+
 					
-					for(var i=0; i<3; i++)
-					{
-						session.userData.score= body_.documents[i].score;
-					}
-					session.send(`${session.userData.score}`);
+					
 				
 				
 			},
+
 
 
 ]).set('storage', inMemoryStorage); // Register in-memory storage 
